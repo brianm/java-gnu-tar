@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="javagnutar" default="jar" basedir=".">
+
+	<property name="build.dir" location="build" />
+	<property name="lib.dir" location="lib" />
+	<property name="dist.dir" location="dist" />
+	<property name="src.dir" location="src" />
+	<property name="conf.dir" location="conf" />
+		
+		
+	<target name="clean" description="Removes build artifacts">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+	
+	<!-- Reusable targets invoked using antcall -->
+	<target name="compile">
+	    <!-- Inputs: module, compile.classpath, test.classpath -->
+	    <echo level="info">Compiling...</echo>
+	    <mkdir dir="${build.dir}"/>
+	    <property name="additional.src.dirs" value=""/>
+	    <javac srcdir="${src.dir}"
+		destdir="${build.dir}"
+		debug="${javac.debug}"
+		classpathref="compile.classpath" />
+		
+		<path id="compile.classpath">
+			<fileset dir="${lib.dir}" includes="*.jar"/>	          
+		</path>
+
+	</target>
+		
+	<target name="jar" depends="compile">
+	    
+		<mkdir dir="${dist.dir}" />
+		
+		<!-- Jar it up -->
+		<jar destfile="${dist.dir}/javagnutar.jar">
+		 	<fileset dir="${build.dir}">
+				<filename name="**/*.class"/>
+	    	</fileset>  
+			<manifest>
+				<attribute name="Built-By" value="${user.name}"/>
+			</manifest>
+		</jar>
+		
+		<!-- Copy required libs -->
+		<copy todir="${dist.dir}">
+            <fileset dir="${lib.dir}">
+		      <include name="**/*.jar"/>
+	    	</fileset>         
+        </copy>
+				
+	</target>
+		
+		
+
+</project>
