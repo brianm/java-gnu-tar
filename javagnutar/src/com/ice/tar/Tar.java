@@ -65,7 +65,7 @@ public class Tar {
 		if(ext.equalsIgnoreCase("gz") && srcFilename.contains("tar.gz")) {
 			tInputStream = new TarInputStream( new GZIPInputStream( new FileInputStream(srcTarOrGzFile)));
 		} else if(ext.equalsIgnoreCase("tar")) {
-			
+
 			tInputStream = new TarInputStream(new FileInputStream(srcTarOrGzFile));
 
 
@@ -73,47 +73,47 @@ public class Tar {
 			throw new IOException("Invalid file extension. Supported: tar.gz, tar");
 		}
 
-		
-		
+
+
 		// We use this fileList LinkedList to keep track of all the files extracted
 		// this way we can return the full listing of files.
 		LinkedList<File> fileList = new LinkedList<File>();
-		
+
 		// Get the first entry in the archive
 		TarEntry tarEntry = tInputStream.getNextEntry(); 
 		while (tarEntry != null){  
-			
+
 			// Create a file with the same name as the tarEntry 
 			File destPath = new File( destDirectory.getAbsolutePath() + File.separatorChar + tarEntry.getName());
-			
+
 			if(logger.isLoggable(Level.FINEST)) {
 				logger.log(Level.FINEST, "Extracting " + destPath.getAbsolutePath());
 			}
-			
+
 			// If the file is a directory, make all the dir's below it
 			if (tarEntry.isDirectory()){
 				destPath.mkdirs();                           
 			} else {
-				
+
 				// It's a file, grab the containing folder and if it doesn't exist, create it.
 				if(destPath.getParentFile().exists() == false) {
 					destPath.getParentFile().mkdirs();
 				}
-				
-					
+
+
 				FileOutputStream fOut = new FileOutputStream(destPath); 
 				tInputStream.copyEntryContents(fOut);   
 				fOut.close();                      
 			}
-			
+
 			// Done writing the file, let's add the file to the list of files/folders
 			fileList.add(destPath);
-			
+
 			// Grab the next tarentry
 			tarEntry = tInputStream.getNextEntry();
 		}    
 		tInputStream.close();
-		
+
 		return fileList;
 	}
 
@@ -124,11 +124,11 @@ public class Tar {
 	 * @throws IOException
 	 */
 	public static void createDirectoryTar(File srcDirectory, File destTarFile) throws IOException{
-		
+
 		if(destTarFile.getName().toLowerCase().endsWith(".tar") == false) {
 			throw new IOException("Destination tar file is not a tar. " + destTarFile.getName().toLowerCase());
 		}
-		
+
 		if(srcDirectory.exists() && srcDirectory.isDirectory() == false) {
 			throw new IOException("Source directory is not a directory.");
 		} else if(srcDirectory.exists() == false) {
@@ -139,10 +139,10 @@ public class Tar {
 		// this is set as LONGFILE_GNU -- so we support 8GB+ files and unlimited
 		// length filenames.
 		TarOutputStream tarOutputStream = new TarOutputStream(new FileOutputStream(destTarFile));         
-		
+
 
 		// Recurse through the directories
-		recursiveTar(srcDirectory, srcDirectory, tarOutputStream);
+		recursiveTar(srcDirectory, srcDirectory, destTarFile, tarOutputStream);
 
 		// Close our output stream, all done!
 		tarOutputStream.close();
@@ -155,17 +155,17 @@ public class Tar {
 	 * @param destTOS
 	 * @throws IOException
 	 */
-	private static void recursiveTar(File rootDir, File curDir, TarOutputStream destTOS) throws IOException {
+	private static void recursiveTar(File rootDir, File curDir, File destTarFile, TarOutputStream destTOS) throws IOException {
 
 		if(curDir == null || rootDir == null || destTOS == null) {
 			return;
 		}
-		
+
 		File[] fList = curDir.listFiles();
 		if(fList == null) {
 			return;
 		}
-		
+
 		byte[] buf = new byte[BUFFER_SIZE];
 
 		int fListLen = fList.length;
@@ -175,66 +175,69 @@ public class Tar {
 			file = fList[i];
 
 			if(file.canRead() == false) {
-				
+
 				System.out.println("Could not read file... ");
 				if(file.getAbsolutePath() != null) {
 					System.out.println("Unread File: " + file.getAbsolutePath());
 				}
 				continue;
 			}
-			
+
 			// Directory? Recurse some more.
 			if(file.isDirectory()) {
 
-				recursiveTar(rootDir, file, destTOS);  
+				recursiveTar(rootDir, file, destTarFile, destTOS);  
 
 			} else {
 
 				// File, let's add it to the Tar.
-
 				String abs = rootDir.getAbsolutePath();
 				String fileAbsPath = file.getAbsolutePath();
-				
-				
-				// We need to set the file's absolute path starting above the root directory
-				// Otherwise the tar will have useless folders in them.
-				if(fileAbsPath.startsWith(abs)) {
-					fileAbsPath = fileAbsPath.substring(abs.length()); 
-				}
-				
-				
-				if(logger.isLoggable(Level.FINEST)) {
-					logger.log(Level.FINEST, "Adding File " + fileAbsPath);
-				}
 
-				FileInputStream fis = null;
-				try {
-					
-					
-					fis = new FileInputStream(file);
-					TarEntry te = new TarEntry(fileAbsPath);
-					te.setSize(file.length());
-					destTOS.putNextEntry(te);
-					int count = 0;
-					while((count = fis.read(buf, 0, BUFFER_SIZE)) != -1) {
-						destTOS.write(buf,0,count);    
+				// Make sure this file isn't the ISO we're creating, since it'll
+				// break badly while we're writing.
+				if(destTarFile.getAbsolutePath().equals(fileAbsPath) == false) {
+
+					// We need to set the file's absolute path starting above the root directory
+					// Otherwise the tar will have useless folders in them.
+					if(fileAbsPath.startsWith(abs)) {
+						fileAbsPath = fileAbsPath.substring(abs.length()); 
 					}
 
-					
+					logger.info("Adding " + fileAbsPath);
 
-				} catch(IOException e) {
-					throw e;
-				} finally {
+					FileInputStream fis = null;
+					try {
 
-					// Close the Tar Output Stream...
-					if(destTOS != null) {
-						destTOS.closeEntry();
+
+						fis = new FileInputStream(file);
+						TarEntry te = new TarEntry(fileAbsPath);
+						te.setSize(file.length());
+						destTOS.putNextEntry(te);
+						int count = 0;
+						while((count = fis.read(buf, 0, BUFFER_SIZE)) != -1) {
+							destTOS.write(buf,0,count);    
+						}
+
+
+
+					} catch(IOException e) {
+						throw e;
+					} finally {
+
+						// Close the Tar Output Stream...
+						if(destTOS != null) {
+							destTOS.closeEntry();
+						}
+
+						// Close the file input stream.
+						if(fis != null) {
+							fis.close();
+						}
 					}
 
-					// Close the file input stream.
-					if(fis != null) {
-						fis.close();
-					}
+				} else {
+					logger.info("Skipping currently writing archive: " + fileAbsPath);
 				}
 			}
 		}
