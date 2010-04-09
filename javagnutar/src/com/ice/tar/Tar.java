@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
@@ -37,7 +38,7 @@ public class Tar {
 	 * @param destDirectory
 	 * @throws IOException
 	 */
-	public static LinkedList<File> extractFiles(File srcTarOrGzFile, File destDirectory) throws IOException{
+	public static void extractFiles(File srcTarOrGzFile, File destDirectory) throws IOException{
 
 		// destFolder needs to be a directory
 		if(destDirectory.exists() && destDirectory.isFile()) {
@@ -74,11 +75,6 @@ public class Tar {
 		}
 
 
-
-		// We use this fileList LinkedList to keep track of all the files extracted
-		// this way we can return the full listing of files.
-		LinkedList<File> fileList = new LinkedList<File>();
-
 		// Get the first entry in the archive
 		TarEntry tarEntry = tInputStream.getNextEntry(); 
 		while (tarEntry != null){  
@@ -106,15 +102,11 @@ public class Tar {
 				fOut.close();                      
 			}
 
-			// Done writing the file, let's add the file to the list of files/folders
-			fileList.add(destPath);
-
 			// Grab the next tarentry
 			tarEntry = tInputStream.getNextEntry();
 		}    
 		tInputStream.close();
 
-		return fileList;
 	}
 
 	/**
@@ -166,6 +158,8 @@ public class Tar {
 			return;
 		}
 
+		Queue<File> directories = new LinkedList<File>();
+
 		byte[] buf = new byte[BUFFER_SIZE];
 
 		int fListLen = fList.length;
@@ -176,9 +170,9 @@ public class Tar {
 
 			if(file.canRead() == false) {
 
-				System.out.println("Could not read file... ");
+				logger.info("Could not read file... ");
 				if(file.getAbsolutePath() != null) {
-					System.out.println("Unread File: " + file.getAbsolutePath());
+					logger.info("Unread File: " + file.getAbsolutePath());
 				}
 				continue;
 			}
@@ -186,7 +180,8 @@ public class Tar {
 			// Directory? Recurse some more.
 			if(file.isDirectory()) {
 
-				recursiveTar(rootDir, file, destTarFile, destTOS);  
+				// Push the directory on to the queue, we process this after adding all the files
+				directories.add(file);
 
 			} else {
 
@@ -239,6 +234,17 @@ public class Tar {
 				} else {
 					logger.info("Skipping currently writing archive: " + fileAbsPath);
 				}
+			}
+			
+			// Ensure this gets cleared from memory by removing the 
+			// reference before recursing further
+			fList = null;
+			
+			// Now add the sub-directories
+			while(directories.isEmpty() == false) {
+				
+				file = directories.poll();
+				recursiveTar(rootDir, file, destTarFile, destTOS);  
 			}
 		}
 	}
