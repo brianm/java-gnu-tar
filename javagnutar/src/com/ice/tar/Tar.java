@@ -235,17 +235,18 @@ public class Tar {
 					logger.info("Skipping currently writing archive: " + fileAbsPath);
 				}
 			}
-			
-			// Ensure this gets cleared from memory by removing the 
-			// reference before recursing further
-			fList = null;
-			
-			// Now add the sub-directories
-			while(directories.isEmpty() == false) {
-				
-				file = directories.poll();
-				recursiveTar(rootDir, file, destTarFile, destTOS);  
-			}
+
+		}
+
+		// Ensure this gets cleared from memory by removing the 
+		// reference before recursing further
+		fList = null;
+
+		// Now add the sub-directories
+		while(directories.isEmpty() == false) {
+
+			file = directories.poll();
+			recursiveTar(rootDir, file, destTarFile, destTOS);  
 		}
 	}
 
