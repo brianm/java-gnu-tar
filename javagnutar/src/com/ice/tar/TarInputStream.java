@@ -24,7 +24,8 @@ import java.util.logging.Logger;
 public class TarInputStream extends FilterInputStream {
 
 	private static final Logger logger = Logger.getLogger(TarInputStream.class.getName());
-
+    private static final int BYTE_MASK = 0xFF;
+	
 	private boolean hasHitEOF;
 
 	/*
@@ -267,7 +268,7 @@ public class TarInputStream extends FilterInputStream {
 
 	public long getStreamPosition() {
 		return buffer.getBlockSize() * buffer.getCurrentBlockNum()
-				+ buffer.getCurrentRecordNum();
+		+ buffer.getCurrentRecordNum();
 	}
 
 	/**
@@ -299,12 +300,8 @@ public class TarInputStream extends FilterInputStream {
 	 */
 	@Override
 	public int read() throws IOException {
-		int num = this.read(this.oneBuf, 0, 1);
-		if (num == -1) {
-			return num;
-		} else {
-			return this.oneBuf[0];
-		}
+		int num = read(oneBuf, 0, 1);
+		return num == -1 ? -1 : ((int) oneBuf[0]) & BYTE_MASK;
 	}
 
 	/**
@@ -340,36 +337,29 @@ public class TarInputStream extends FilterInputStream {
 	public int read(byte[] buf, int offset, int numToRead) throws IOException {
 		int totalRead = 0;
 
-		if (this.entryOffset >= this.entrySize) {
+		if (entryOffset >= entrySize) {
 			return -1;
 		}
 
-		if (numToRead + this.entryOffset > this.entrySize) {
-			numToRead = (int) (this.entrySize - this.entryOffset);
+		if ((numToRead + entryOffset) > entrySize) {
+			numToRead = (int) (entrySize - entryOffset);
 		}
 
-		if (this.readBuf != null) {
-
-			int sz = numToRead > this.readBuf.length ? this.readBuf.length
+		if (readBuf != null) {
+			int sz = (numToRead > readBuf.length) ? readBuf.length
 					: numToRead;
 
-			System.arraycopy(this.readBuf, 0, buf, offset, sz);
+			System.arraycopy(readBuf, 0, buf, offset, sz);
 
-			if (sz >= this.readBuf.length) {
-
-				this.readBuf = null;
-
+			if (sz >= readBuf.length) {
+				readBuf = null;
 			} else {
-
-				int newLen = this.readBuf.length - sz;
+				int newLen = readBuf.length - sz;
 				byte[] newBuf = new byte[newLen];
 
-				System.arraycopy(this.readBuf, sz, newBuf, 0, newLen);
+				System.arraycopy(readBuf, sz, newBuf, 0, newLen);
 
-				this.readBuf = newBuf;
-
-				// Free memory
-				newBuf = null;
+				readBuf = newBuf;
 			}
 
 			totalRead += sz;
@@ -377,29 +367,27 @@ public class TarInputStream extends FilterInputStream {
 			offset += sz;
 		}
 
-		byte[] rec = null;
-		int recLen = -1;
-		int sz = -1;
 		while (numToRead > 0) {
+			byte[] rec = buffer.readRecord();
 
-			rec = this.buffer.readRecord();
 			if (rec == null) {
 				// Unexpected EOF!
 				throw new IOException("unexpected EOF with " + numToRead
 						+ " bytes unread");
 			}
 
-			sz = numToRead;
-			recLen = rec.length;
+			int sz = numToRead;
+			int recLen = rec.length;
 
 			if (recLen > sz) {
-
 				System.arraycopy(rec, 0, buf, offset, sz);
-				this.readBuf = new byte[recLen - sz];
-				System.arraycopy(rec, sz, this.readBuf, 0, recLen - sz);
 
+				readBuf = new byte[recLen - sz];
+
+				System.arraycopy(rec, sz, readBuf, 0, recLen - sz);
 			} else {
 				sz = recLen;
+
 				System.arraycopy(rec, 0, buf, offset, recLen);
 			}
 
@@ -408,10 +396,7 @@ public class TarInputStream extends FilterInputStream {
 			offset += sz;
 		}
 
-		// Free memory
-		rec = null;
-
-		this.entryOffset += totalRead;
+		entryOffset += totalRead;
 
 		return totalRead;
 	}

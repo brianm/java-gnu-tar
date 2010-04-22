@@ -3,6 +3,7 @@ package com.ice.tar;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,7 +29,7 @@ import java.util.logging.Logger;
 
 public class TarBuffer extends Object {
 
-	private static final Logger logger = Logger.getLogger(TarInputStream.class.getName());
+	private static final Logger logger = Logger.getLogger(TarBuffer.class.getName());
 
 	private InputStream inStream;
 	private OutputStream outStream;
@@ -195,93 +196,111 @@ public class TarBuffer extends Object {
 		return true;
 	}
 
-	/**
-	 * @return false if End-Of-File, else true
-	 */
+	
+	 /**
+     * Read a record from the input stream and return the data.
+     *
+     * @return The record data.
+     * @throws IOException on error
+     */
+    public byte[] readRecord() throws IOException {
+    	if(logger.isLoggable(Level.FINEST)) {
+            logger.finest("ReadRecord: recIdx = " + currRecIdx
+                               + " blkIdx = " + currBlkIdx);
+        }
 
-	private boolean readBlock() throws IOException {
+        if (this.inStream == null) {
+            throw new IOException("Either reading from an output buffer, or the input stream was closed.");
+        }
 
-		if (logger.isLoggable(Level.FINEST)) {
-			logger.log(Level.FINEST, "ReadBlock: blkIdx = " + this.currBlkIdx);
-		}
+        if (this.currRecIdx >= this.recsPerBlock) {
+            if (!readBlock()) {
+                return null;
+            }
+        }
 
-		if (this.inStream == null) {
-			throw new IOException("reading from an output buffer");
-		}
+        byte[] result = new byte[recordSize];
 
-		this.currRecIdx = 0;
+        System.arraycopy(this.blockBuffer,
+                         (this.currRecIdx * this.recordSize), result, 0,
+                         this.recordSize);
 
-		int offset = 0;
-		int bytesNeeded = this.blockSize;
-		while (bytesNeeded > 0) {
-			long numBytes = this.inStream.read(this.blockBuffer, offset,
-					bytesNeeded);
+        this.currRecIdx++;
 
-			//
-			// NOTE
-			// We have fit EOF, and the block is not full!
-			//
-			// This is a broken archive. It does not follow the standard
-			// blocking algorithm. However, because we are generous, and
-			// it requires little effort, we will simply ignore the error
-			// and continue as if the entire block were read. This does
-			// not appear to break anything upstream. We used to return
-			// false in this case.
-			//
-			// Thanks to 'Yohann.Roussel@alcatel.fr' for this fix.
-			//
+        return result;
+    }
 
-			if (numBytes == -1) {
-				break;
-			}
+    /**
+     * @return false if End-Of-File, else true
+     */
+    private boolean readBlock() throws IOException {
+    	
+      if(logger.isLoggable(Level.FINEST)) {
+            logger.finest("ReadBlock: blkIdx = " + currBlkIdx);
+        }
 
-			offset += numBytes;
-			bytesNeeded -= numBytes;
+        if (inStream == null) {
+            throw new IOException("Either reading from an output buffer, or the input stream was closed.");
+        }
 
-			if (numBytes != this.blockSize && logger.isLoggable(Level.FINEST)) {
-				logger.log(Level.FINEST, "ReadBlock: INCOMPLETE READ "
-						+ numBytes + " of " + this.blockSize + " bytes read.");
-			}
-		}
+        this.currRecIdx = 0;
 
-		this.currBlkIdx++;
+        int offset = 0;
+        int bytesNeeded = this.blockSize;
 
-		return true;
-	}
+        while (bytesNeeded > 0) {
+            long numBytes = this.inStream.read(this.blockBuffer, offset,
+                                               bytesNeeded);
 
-	/**
-	 * Read a record from the input stream and return the data.
-	 * 
-	 * @return The record data.
-	 */
+            //
+            // NOTE
+            // We have fit EOF, and the block is not full!
+            //
+            // This is a broken archive. It does not follow the standard
+            // blocking algorithm. However, because we are generous, and
+            // it requires little effort, we will simply ignore the error
+            // and continue as if the entire block were read. This does
+            // not appear to break anything upstream. We used to return
+            // false in this case.
+            //
+            // Thanks to 'Yohann.Roussel@alcatel.fr' for this fix.
+            //
+            if (numBytes == -1) {
+                if (offset == 0) {
+                    // Ensure that we do not read gigabytes of zeros
+                    // for a corrupt tar file.
+                    // See http://issues.apache.org/bugzilla/show_bug.cgi?id=39924
+                    return false;
+                }
+                // However, just leaving the unread portion of the buffer dirty does
+                // cause problems in some cases.  This problem is described in
+                // http://issues.apache.org/bugzilla/show_bug.cgi?id=29877
+                //
+                // The solution is to fill the unused portion of the buffer with zeros.
 
-	public byte[] readRecord() throws IOException {
+                Arrays.fill(this.blockBuffer, offset, offset + bytesNeeded, (byte) 0);
 
-		if (logger.isLoggable(Level.FINEST)) {
-			logger.log(Level.FINEST, "ReadRecord: recIdx = " + this.currRecIdx
-					+ " blkIdx = " + this.currBlkIdx);
-		}
+                break;
+            }
 
-		if (this.inStream == null) {
-			throw new IOException("reading from an output buffer");
-		}
+            offset += numBytes;
+            bytesNeeded -= numBytes;
 
-		if (this.currRecIdx >= this.recsPerBlock) {
-			if (!this.readBlock()) {
-				return null;
-			}
-		}
+            if (numBytes != this.blockSize) {
+            	
+            	if(logger.isLoggable(Level.FINEST)) {
+                    logger.finest("ReadBlock: INCOMPLETE READ "
+                                       + numBytes + " of " + this.blockSize
+                                       + " bytes read.");
+                }
+            }
+        }
 
-		byte[] result = new byte[this.recordSize];
+        this.currBlkIdx++;
 
-		// System.out.println("blockbuff: "+this.currBlkIdx+" currRec: "+this.currRecIdx+" this.recordsize: "+this.recordSize+" blockbufflengt: "+this.blockBuffer.length);
-		System.arraycopy(this.blockBuffer, (this.currRecIdx * this.recordSize),
-				result, 0, this.recordSize);
-
-		this.currRecIdx++;
-
-		return result;
-	}
+        return true;
+    }
+	
 
 	/**
 	 * Skip over a record on the input stream.
@@ -296,7 +315,7 @@ public class TarBuffer extends Object {
 		}
 
 		if (this.inStream == null) {
-			throw new IOException("reading (via skip) from an output buffer");
+			throw new IOException("Either reading (via Skip) from an output buffer, or the input stream was closed.");
 		}
 
 		if (this.currRecIdx >= this.recsPerBlock) {

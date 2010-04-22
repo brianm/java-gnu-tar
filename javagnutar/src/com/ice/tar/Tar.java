@@ -196,7 +196,7 @@ public class Tar {
 					// We need to set the file's absolute path starting above the root directory
 					// Otherwise the tar will have useless folders in them.
 					if(fileAbsPath.startsWith(abs)) {
-						fileAbsPath = fileAbsPath.substring(abs.length()); 
+						fileAbsPath = fileAbsPath.substring(abs.length() + 1); 
 					}
 
 					logger.info("Adding " + fileAbsPath);
