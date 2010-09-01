@@ -110,6 +110,18 @@ public class TarEntry extends Object implements Cloneable {
 	public static final int GNU_FORMAT = 0;
 	public static final int USTAR_FORMAT = 1;
 	public static final int UNIX_FORMAT = 2;
+	
+	/** Maximum length of a user's name in the tar file */
+	public static final int MAX_NAMELEN = 31;
+
+	/** Default permissions bits for directories */
+	public static final int DEFAULT_DIR_MODE = 040755;
+
+	/** Default permissions bits for files */
+	public static final int DEFAULT_FILE_MODE = 0100644;
+
+	/** Convert millis to seconds */
+	public static final int MILLIS_PER_SECOND = 1000; 
 
 	/** If this entry represents a File, this references it. */
 	private File file;
@@ -178,8 +190,8 @@ public class TarEntry extends Object implements Cloneable {
 		this.linkName = "";
 
 		String user = System.getProperty("user.name", "");
-		if (user.length() > 31) {
-			user = user.substring(0, 31);
+		if (user.length() > MAX_NAMELEN) {
+			user = user.substring(0, MAX_NAMELEN);
 		}
 
 		this.userId = 0;
@@ -303,6 +315,16 @@ public class TarEntry extends Object implements Cloneable {
 	public File getFile() {
 		return this.file;
 	}
+	
+	/**
+	 * Get this entry's mode.
+	 *
+	 * @return This entry's mode.
+	 */
+	public int getMode() {
+		return this.mode;
+	} 
+	
 
 	/**
 	 * Get this entry's group id.
@@ -329,7 +351,7 @@ public class TarEntry extends Object implements Cloneable {
 	 *            This entry's new modification time.
 	 */
 	public Date getModTime() {
-		return new Date(this.modTime * 1000);
+		return new Date(this.modTime * MILLIS_PER_SECOND);
 	}
 
 	/**
@@ -359,6 +381,16 @@ public class TarEntry extends Object implements Cloneable {
 		return tarFormat;
 	}
 
+	/**
+	 * Get this entry's link name.
+	 *
+	 * @return This entry's link name.
+	 */
+	public String getLinkName() {
+		return linkName.toString();
+	} 
+	
+	
 	/**
 	 * Get this entry's user id.
 	 * 
@@ -439,13 +471,13 @@ public class TarEntry extends Object implements Cloneable {
 		this.devMinor = 0;
 
 		this.name = name;
-		this.mode = isDir ? 040755 : 0100644;
+		this.mode = isDir ? DEFAULT_DIR_MODE : DEFAULT_FILE_MODE;
 		this.userId = 0;
 		this.groupId = 0;
 		this.size = 0;
 		this.checkSum = 0;
 
-		this.modTime = new java.util.Date().getTime() / 1000;
+		this.modTime = new java.util.Date().getTime() / MILLIS_PER_SECOND;
 
 		this.linkFlag = isDir ? TarConstants.LF_DIR : TarConstants.LF_NORMAL;
 
@@ -513,14 +545,14 @@ public class TarEntry extends Object implements Cloneable {
 
 		if (file.isDirectory()) {
 			this.size = 0;
-			this.mode = 040755;
+			this.mode = DEFAULT_DIR_MODE;
 			this.linkFlag = TarConstants.LF_DIR;
 			if (this.name.charAt(this.name.length() - 1) != '/') {
 				hdrName.append("/");
 			}
 		} else {
 			this.size = file.length();
-			this.mode = 0100644;
+			this.mode = DEFAULT_FILE_MODE;
 			this.linkFlag = TarConstants.LF_NORMAL;
 		}
 
@@ -528,7 +560,7 @@ public class TarEntry extends Object implements Cloneable {
 
 		// UNDONE When File lets us get the userName, use it!
 
-		this.modTime = file.lastModified() / 1000;
+		this.modTime = file.lastModified() / MILLIS_PER_SECOND;
 		this.checkSum = 0;
 		this.devMajor = 0;
 		this.devMinor = 0;
@@ -732,7 +764,7 @@ public class TarEntry extends Object implements Cloneable {
 	 *            This entry's new modification time.
 	 */
 	public void setModTime(Date time) {
-		this.modTime = time.getTime() / 1000;
+		this.modTime = time.getTime() / MILLIS_PER_SECOND;
 	}
 
 	/**
@@ -743,7 +775,7 @@ public class TarEntry extends Object implements Cloneable {
 	 *            This entry's new modification time.
 	 */
 	public void setModTime(long time) {
-		this.modTime = time / 1000;
+		this.modTime = time / MILLIS_PER_SECOND;
 	}
 
 	/**
@@ -755,6 +787,15 @@ public class TarEntry extends Object implements Cloneable {
 	public void setName(String name) {
 		this.name = name;
 	}
+	
+	/**
+	 * Set the mode for this entry
+	 *
+	 * @param mode the mode for this entry
+	 */
+	public void setMode(int mode) {
+		this.mode = mode;
+	} 
 
 	/**
 	 * Convenience method to set this entry's group and user names.

@@ -115,7 +115,7 @@ public class TarConstants {
 	/**
 	 * The magic tag representing a GNU tar archive.
 	 */
-	public static final String GNU_TMAGIC = "ustar ";
+	public static final String GNU_TMAGIC = "ustar  "; 
 
 	/**
 	 * The name of the GNU tar entry which contains a long name.

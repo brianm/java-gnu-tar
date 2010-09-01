@@ -277,8 +277,7 @@ public class TarOutputStream extends FilterOutputStream {
 		if (length != -1) {
 			entry.setSize(new Long(length).longValue());
 		}
-		entry
-				.writeEntryHeaderMulti(this.recordBuf, new Long(atByte)
+		entry.writeEntryHeaderMulti(this.recordBuf, new Long(atByte)
 						.intValue());
 
 		this.buffer.writeRecord(this.recordBuf);
