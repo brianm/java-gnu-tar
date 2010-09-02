@@ -294,7 +294,7 @@ public class TarFileUtil {
 		buf[offset + leftIdx] = 0;
 		leftIdx++;
 
-		// Leave for loop the the postfix iterator
+		// Postfix iterator
 		while(leftIdx < length) {
 			buf[offset + leftIdx] = postfix; // Was a spacer byte
 			leftIdx++;
