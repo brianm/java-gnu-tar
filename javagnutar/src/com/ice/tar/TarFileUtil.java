@@ -1,6 +1,8 @@
 package com.ice.tar;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
  * These are the standard static helpers for parsing/writing the header data.
@@ -12,26 +14,48 @@ import java.math.BigInteger;
  * 
  * @author Jeremy Lucier
  * 
+ * Thanks to Thomas Ledoux for his many contributions all over this code. 
+ * He fixed the byte shifts and discrepancies between this and the official format.
+ * 
  */
 public class TarFileUtil {
 
+	private static final int BYTE_MASK = 255;
+
+
 	/**
 	 * Parse the checksum octal integer from a header buffer.
-	 * 
-	 * @param header
-	 *            The header buffer from which to parse.
-	 * @param offset
-	 *            The offset into the buffer from which to parse.
-	 * @param length
-	 *            The number of header bytes to parse.
+	 *
+	 * @param value The header value
+	 * @param buf The buffer from which to parse.
+	 * @param offset The offset into the buffer from which to parse.
+	 * @param length The number of header bytes to parse.
 	 * @return The integer value of the entry's checksum.
 	 */
+
 	public static int getCheckSumOctalBytes(long value, byte[] buf, int offset, int length) {
-		getOctalBytes(value, buf, offset, length);
-		buf[offset + length - 1] = TarConstants.SPACER_BYTE;
-		buf[offset + length - 2] = 0;
+		getPostfixOctalBytes(value, buf, offset, length, TarConstants.SPACER_BYTE);
 		return offset + length;
 	}
+
+	/**
+	 * Compute the checksum of a tar entry header.
+	 *
+	 * @param buf The tar entry's header buffer.
+	 * @return The computed checksum.
+	 */
+	public static long computeCheckSum(byte[] buf) {
+		long sum = 0;
+
+		for (int i = 0; i < buf.length; ++i) {
+			sum += BYTE_MASK & buf[i];
+		}
+
+		return sum;
+	}
+
+
+
 
 	/**
 	 * This method, like getNameBytes(), is intended to place a name into a
@@ -69,7 +93,7 @@ public class TarFileUtil {
 			String prefix = newName.substring(0, index);
 			if (prefix.length() > TarConstants.PREFIXLEN) {
 				throw new InvalidHeaderException(
-						"file prefix is greater than 155 characters");
+				"file prefix is greater than 155 characters");
 			}
 
 			getNameBytes(name, outbuf, TarConstants.NAMEOFFSET,
@@ -104,13 +128,7 @@ public class TarFileUtil {
 	public static int getLongOctalBytes(long value, byte[] buf, int offset,
 			int length) {
 
-		byte[] temp = new byte[length + 1];
-		getOctalBytes(value, temp, 0, length + 1);
-		System.arraycopy(temp, 0, buf, offset, length);
-
-		// Free memory
-		temp = null;
-
+		getOctalBytes(value, buf, offset, length, TarConstants.ZERO_BYTE);
 		return offset + length;
 	}
 
@@ -134,7 +152,7 @@ public class TarFileUtil {
 			int length) {
 
 		byte[] temp = new byte[length + 1];
-		getOctalBytes(value, temp, 0, length + 1);
+		getOctalBytes(value, temp, 0, length + 1, TarConstants.ZERO_BYTE);
 
 		for (int m = 0; m < length + 1; m++) {
 			if (temp[m] == 32) {
@@ -178,7 +196,8 @@ public class TarFileUtil {
 
 		int i = 0;
 
-		for (i = 0; i < length && i < name.length(); ++i) {
+		int nameLen = name.length();
+		for (i = 0; i < length && i < nameLen; ++i) {
 			buf[offset + i] = (byte) name.charAt(i);
 		}
 
@@ -201,18 +220,17 @@ public class TarFileUtil {
 	 *            The number of header bytes to parse.
 	 * @return The integer value of the octal bytes.
 	 */
-	public static int getOctalBytes(long value, byte[] buf, int offset,
-			int length) {
+	public static int getOctalBytes(long value, byte[] buf, int offset, int length, byte prefix) {
 
 		// Leave the prefix calls
 		int idx = length - 1;
 
+		// Set the last byte null
 		buf[offset + idx] = 0;
-		--idx;
-		buf[offset + idx] = TarConstants.SPACER_BYTE;
 		--idx;
 
 		if (value == 0) {
+			// Set the last value to zero
 			buf[offset + idx] = TarConstants.ZERO_BYTE;
 			--idx;
 		} else {
@@ -224,7 +242,63 @@ public class TarFileUtil {
 
 		// Leave for loop a a prefix iterator
 		for (; idx >= 0; --idx) {
-			buf[offset + idx] = TarConstants.SPACER_BYTE;
+			buf[offset + idx] = prefix; // Was a spacer byte
+		}
+
+		return offset + length;
+	}
+
+	/**
+	 * Parse an octal integer from a header buffer. This is postfixed, required for checksum
+	 * to match tar in linux's behavior
+	 * 
+	 * @param header
+	 *            The header buffer from which to parse.
+	 * @param offset
+	 *            The offset into the buffer from which to parse.
+	 * @param length
+	 *            The number of header bytes to parse.
+	 * @return The integer value of the octal bytes.
+	 */
+	public static int getPostfixOctalBytes(long value, byte[] buf, int offset, int length, byte postfix) {
+
+		int leftIdx = 0;
+		if(value == 0) {
+			buf[offset + leftIdx] = TarConstants.ZERO_BYTE;
+			leftIdx++;
+		} else {
+
+			// We're going to shove all the digits of the long into a byte ArrayList,
+			// then we're going to put them back in rev order into the buffer. 
+			// This isn't efficient and should probably be rewritten when I find some
+			// time.
+
+			//TODO: Optimize
+			ArrayList<Byte> vals = new ArrayList<Byte>();
+			long val = value;
+			while(val > 0) {
+				vals.add((byte) (TarConstants.ZERO_BYTE + (byte) (val & 7)));
+				val = val >> 3;
+			}
+
+			// Now let's iterate in reverse through it and put it on the buffer
+			for(int x = vals.size() - 1; x >= 0; x--) {
+				buf[offset + leftIdx] = vals.get(x);
+				leftIdx++;
+			}
+			
+			vals.clear();
+		}
+
+
+		// NUL terminate after sequence
+		buf[offset + leftIdx] = 0;
+		leftIdx++;
+
+		// Leave for loop the the postfix iterator
+		while(leftIdx < length) {
+			buf[offset + leftIdx] = postfix; // Was a spacer byte
+			leftIdx++;
 		}
 
 		return offset + length;
@@ -260,8 +334,7 @@ public class TarFileUtil {
 	/**
 	 * gets the real size as binary data for files that are larger than 8GB
 	 */
-	public static long getSize(byte[] header, int offset, int length)
-			throws InvalidHeaderException {
+	public static long getSize(byte[] header, int offset, int length) {
 
 		long test = parseOctal(header, offset, length);
 		if (test <= 0 && header[offset] == (byte) 128) {
@@ -333,8 +406,7 @@ public class TarFileUtil {
 	 *            The number of header bytes to parse.
 	 * @return The header's entry name.
 	 */
-	public static String parseName(byte[] header, int offset, int length)
-			throws InvalidHeaderException {
+	public static String parseName(byte[] header, int offset, int length) {
 		StringBuilder result = new StringBuilder(length);
 
 		int end = offset + length;
@@ -360,8 +432,7 @@ public class TarFileUtil {
 	 *            The number of header bytes to parse.
 	 * @return The long value of the octal string.
 	 */
-	public static long parseOctal(byte[] header, int offset, int length)
-			throws InvalidHeaderException {
+	public static long parseOctal(byte[] header, int offset, int length) {
 
 		long result = 0;
 		boolean stillPadding = true;
@@ -386,7 +457,7 @@ public class TarFileUtil {
 			stillPadding = false;
 
 			result = (result << 3) + (header[i] - TarConstants.ZERO_BYTE); // -
-																			// '0'
+			// '0'
 		}
 
 		return result;

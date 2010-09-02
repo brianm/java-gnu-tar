@@ -107,26 +107,34 @@ public class TarConstants {
 	 */
 	public static final byte LF_CONTIG = (byte) '7';
 
+	
+	/**
+	 * Identifies the *next* file on the tape as having a long name.
+	 */
+	public static final byte LF_GNUTYPE_LONGNAME = (byte) 'L';
+	
+	/**
+	 * Identifies a multi-volume gnutar file
+	 */
+	public static final byte LF_GNUTYPE_MULTIVOL = (byte) 'M';
+	
 	/**
 	 * The magic tag representing a POSIX tar archive.
 	 */
 	public static final String TMAGIC = "ustar";
 
-	/**
-	 * The magic tag representing a GNU tar archive.
-	 */
-	public static final String GNU_TMAGIC = "ustar  "; 
+	/** OLDGNU_MAGIC uses both magic and version fields, which are contiguous.
+	   Found in an archive, it indicates an old GNU header format, which will be
+	   hopefully become obsolete.  With OLDGNU_MAGIC, uname and gname are
+	   valid, though the header is not truly POSIX conforming.  */
+	public static final String OLDGNU_TMAGIC = "ustar  "; 
 
 	/**
 	 * The name of the GNU tar entry which contains a long name.
 	 */
 	public static final String GNU_LONGLINK = "././@LongLink";
 
-	/**
-	 * Identifies the *next* file on the tape as having a long name.
-	 */
-	public static final byte LF_GNUTYPE_LONGNAME = (byte) 'L';
-
+	
 	/**
 	 * Default RCD Size.
 	 */
@@ -146,6 +154,8 @@ public class TarConstants {
 	/** Large Buffer Size */
 	public static final int LARGE_BUFFER_SIZE = 32768;
 
+	
+	
 	/** We cast this constantly **/
 	public static final byte SPACER_BYTE = (byte) ' ';
 

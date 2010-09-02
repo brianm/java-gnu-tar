@@ -110,7 +110,7 @@ public class TarEntry extends Object implements Cloneable {
 	public static final int GNU_FORMAT = 0;
 	public static final int USTAR_FORMAT = 1;
 	public static final int UNIX_FORMAT = 2;
-	
+
 	/** Maximum length of a user's name in the tar file */
 	public static final int MAX_NAMELEN = 31;
 
@@ -185,7 +185,7 @@ public class TarEntry extends Object implements Cloneable {
 	private TarEntry() {
 
 		// Set the defaults
-		this.magic = TarConstants.GNU_TMAGIC;
+		this.magic = TarConstants.OLDGNU_TMAGIC;
 		this.name = null;
 		this.linkName = "";
 
@@ -237,7 +237,7 @@ public class TarEntry extends Object implements Cloneable {
 		this(name);
 		this.linkFlag = linkFlag;
 		if (this.linkFlag == TarConstants.LF_GNUTYPE_LONGNAME) {
-			this.magic = TarConstants.GNU_TMAGIC;
+			this.magic = TarConstants.OLDGNU_TMAGIC;
 		}
 	}
 
@@ -254,24 +254,6 @@ public class TarEntry extends Object implements Cloneable {
 	 * 
 	 * return entry; }
 	 */
-
-	/**
-	 * Compute the checksum of a tar entry header.
-	 * 
-	 * @param buf
-	 *            The tar entry's header buffer.
-	 * @return The computed checksum.
-	 */
-	public long computeCheckSum(byte[] buf) {
-		long sum = 0;
-
-		int bufLen = buf.length;
-		for (int i = 0; i < bufLen; ++i) {
-			sum += 255 & buf[i];
-		}
-
-		return sum;
-	}
 
 	/**
 	 * Determine if the two entries are equal. Equality is determined by the
@@ -315,7 +297,7 @@ public class TarEntry extends Object implements Cloneable {
 	public File getFile() {
 		return this.file;
 	}
-	
+
 	/**
 	 * Get this entry's mode.
 	 *
@@ -324,7 +306,7 @@ public class TarEntry extends Object implements Cloneable {
 	public int getMode() {
 		return this.mode;
 	} 
-	
+
 
 	/**
 	 * Get this entry's group id.
@@ -389,8 +371,8 @@ public class TarEntry extends Object implements Cloneable {
 	public String getLinkName() {
 		return linkName.toString();
 	} 
-	
-	
+
+
 	/**
 	 * Get this entry's user id.
 	 * 
@@ -452,7 +434,7 @@ public class TarEntry extends Object implements Cloneable {
 	 */
 	public boolean isGNULongNameEntry() {
 		return this.linkFlag == TarConstants.LF_GNUTYPE_LONGNAME
-				&& this.name.equals(TarConstants.GNU_LONGLINK);
+		&& this.name.equals(TarConstants.GNU_LONGLINK);
 	}
 
 	/**
@@ -521,8 +503,8 @@ public class TarEntry extends Object implements Cloneable {
 					char ch1 = name.charAt(0);
 					char ch2 = name.charAt(1);
 					if (ch2 == ':'
-							&& (ch1 >= 'a' && ch1 <= 'z' || ch1 >= 'A'
-									&& ch1 <= 'Z')) {
+						&& (ch1 >= 'a' && ch1 <= 'z' || ch1 >= 'A'
+							&& ch1 <= 'Z')) {
 						name = name.substring(2);
 					}
 				}
@@ -582,38 +564,44 @@ public class TarEntry extends Object implements Cloneable {
 		//
 		// NOTE Recognize archive header format.
 		//
+
+		// Unix format magic (no magic): 00000
 		if (headerBuf[257] == 0 && headerBuf[258] == 0 && headerBuf[259] == 0
 				&& headerBuf[260] == 0 && headerBuf[261] == 0) {
 
 			this.tarFormat = UNIX_FORMAT;
 
 		} else if (headerBuf[257] == 'u' && headerBuf[258] == 's'
-				&& headerBuf[259] == 't' && headerBuf[260] == 'a'
+			&& headerBuf[259] == 't' && headerBuf[260] == 'a'
 				&& headerBuf[261] == 'r' && headerBuf[262] == 0) {
+			// Ustar format magic: "ustar\0"
+
+			// Posix and new gnutar should fall into thie category due to their magic being:
+			// typically "ustar\000"
 
 			this.tarFormat = USTAR_FORMAT;
 
 		} else if (headerBuf[257] == 'u' && headerBuf[258] == 's'
-				&& headerBuf[259] == 't' && headerBuf[260] == 'a'
+			&& headerBuf[259] == 't' && headerBuf[260] == 'a'
 				&& headerBuf[261] == 'r' && headerBuf[262] != 0
 				&& headerBuf[263] != 0) {
-
-			// TODO: REVIEW
+			// [old and new] GNUTar format magic: "ustar[wild][wild]" (typically "  ")
 			this.tarFormat = GNU_FORMAT;
 
 		} else if (headerBuf[257] == 'u' && headerBuf[258] == 's'
-				&& headerBuf[259] == 't' && headerBuf[260] == 'a'
+			&& headerBuf[259] == 't' && headerBuf[260] == 'a'
 				&& headerBuf[261] == 'r' && headerBuf[262] == 32
 				&& headerBuf[263] == 0) {
 
+			// GNUTar Format: "ustar \0".  This technically shouldn't
+			// be used, but it's a safety check for bad flags
 			// TODO: REVIEW this is GNUtar format
 			this.tarFormat = GNU_FORMAT;
 
 		} else {
 			StringBuffer buf = new StringBuffer(128);
 
-			buf
-					.append("header magic is not 'ustar' or unix-style zeros, it is '");
+			buf.append("header magic is not 'ustar' or unix-style zeros, it is '");
 			buf.append(headerBuf[257]);
 			buf.append(headerBuf[258]);
 			buf.append(headerBuf[259]);
@@ -787,7 +775,7 @@ public class TarEntry extends Object implements Cloneable {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
 	/**
 	 * Set the mode for this entry
 	 *
@@ -833,7 +821,17 @@ public class TarEntry extends Object implements Cloneable {
 			throw new Exception("Invalid format specified.");
 		}
 
+		// Set this tar as the requested format
 		this.tarFormat = tarFormat;
+
+		// Set the magic type
+		if (tarFormat == UNIX_FORMAT) {
+			this.magic = "";
+		} else if (tarFormat == USTAR_FORMAT) {
+			this.magic = TarConstants.TMAGIC;
+		} else if (tarFormat == GNU_FORMAT) {
+			this.magic = TarConstants.OLDGNU_TMAGIC;
+		}
 	}
 
 	/**
@@ -860,12 +858,12 @@ public class TarEntry extends Object implements Cloneable {
 	public String toString() {
 		StringBuffer result = new StringBuffer(128);
 		return result.append("[TarEntry name=").append(this.getName()).append(
-				", isDir=").append(this.isDirectory()).append(", size=")
-				.append(this.getSize()).append(", userId=").append(
-						this.getUserId()).append(", user=").append(
+		", isDir=").append(this.isDirectory()).append(", size=")
+		.append(this.getSize()).append(", userId=").append(
+				this.getUserId()).append(", user=").append(
 						this.getUserName()).append(", groupId=").append(
-						this.getGroupId()).append(", group=").append(
-						this.getGroupName()).append("]").toString();
+								this.getGroupId()).append(", group=").append(
+										this.getGroupName()).append("]").toString();
 	}
 
 	/**
@@ -889,13 +887,13 @@ public class TarEntry extends Object implements Cloneable {
 				(this.tarFormat == GNU_FORMAT));
 
 		offset = TarFileUtil.getOctalBytes(this.mode, outbuf, offset,
-				TarConstants.MODELEN);
+				TarConstants.MODELEN, TarConstants.ZERO_BYTE);
 
 		offset = TarFileUtil.getOctalBytes(this.userId, outbuf, offset,
-				TarConstants.UIDLEN);
+				TarConstants.UIDLEN, TarConstants.ZERO_BYTE);
 
 		offset = TarFileUtil.getOctalBytes(this.groupId, outbuf, offset,
-				TarConstants.GIDLEN);
+				TarConstants.GIDLEN, TarConstants.ZERO_BYTE);
 
 		long size = this.size;
 
@@ -923,6 +921,9 @@ public class TarEntry extends Object implements Cloneable {
 			for (int i = 0; i < TarConstants.MAGICLEN; ++i) {
 				outbuf[offset++] = 0;
 			}
+		} else if (this.tarFormat == USTAR_FORMAT) {
+			outbuf[offset - 2] = TarConstants.ZERO_BYTE;
+			outbuf[offset - 1] = TarConstants.ZERO_BYTE;
 		} else {
 			offset = TarFileUtil.getNameBytes(this.magic, outbuf, offset,
 					TarConstants.MAGICLEN);
@@ -935,26 +936,30 @@ public class TarEntry extends Object implements Cloneable {
 				TarConstants.GNAMELEN);
 
 		offset = TarFileUtil.getOctalBytes(this.devMajor, outbuf, offset,
-				TarConstants.DEVLEN);
+				TarConstants.DEVLEN, TarConstants.ZERO_BYTE);
 
 		offset = TarFileUtil.getOctalBytes(this.devMinor, outbuf, offset,
-				TarConstants.DEVLEN);
+				TarConstants.DEVLEN, TarConstants.ZERO_BYTE);
 
 		while (offset < outbuf.length) {
 			outbuf[offset++] = 0;
 		}
 
 		/*
-		 * This sets the real size if the size is bigger than the 8GB barrier
+		 * This sets the real size if the size is bigger than the 8GB barrier.
+		 * Not supported by USTAR 
+		 * (based on http://en.wikipedia.org/wiki/Tar_%28file_format%29#UStar_format)
 		 * 
 		 * Directory "size" fix contributed by: Bert Becker
 		 * <becker@informatik.hu-berlin.de>
 		 */
-		if (size > 8589934592l) {
-			offset = TarFileUtil.setRealSize(size, outbuf, 124, 12);
+		if(this.tarFormat != USTAR_FORMAT) {
+			if (size > 8589934592l) {
+				offset = TarFileUtil.setRealSize(size, outbuf, 124, 12);
+			}
 		}
 
-		long checkSum = this.computeCheckSum(outbuf);
+		long checkSum = TarFileUtil.computeCheckSum(outbuf);
 
 		TarFileUtil.getCheckSumOctalBytes(checkSum, outbuf, csOffset,
 				TarConstants.CHKSUMLEN);
@@ -970,7 +975,7 @@ public class TarEntry extends Object implements Cloneable {
 	 *             If the name will not fit in the header.
 	 */
 	public void writeEntryHeaderMulti(byte[] outbuf, int m)
-			throws InvalidHeaderException {
+	throws InvalidHeaderException {
 
 		int offset = 0;
 
@@ -983,13 +988,13 @@ public class TarEntry extends Object implements Cloneable {
 				(this.tarFormat == GNU_FORMAT));
 
 		offset = TarFileUtil.getOctalBytes(this.mode, outbuf, offset,
-				TarConstants.MODELEN);
+				TarConstants.MODELEN, TarConstants.ZERO_BYTE);
 
 		offset = TarFileUtil.getOctalBytes(this.userId, outbuf, offset,
-				TarConstants.UIDLEN);
+				TarConstants.UIDLEN, TarConstants.ZERO_BYTE);
 
 		offset = TarFileUtil.getOctalBytes(this.groupId, outbuf, offset,
-				TarConstants.GIDLEN);
+				TarConstants.GIDLEN, TarConstants.ZERO_BYTE);
 
 		long size = this.size;
 
@@ -1009,7 +1014,7 @@ public class TarEntry extends Object implements Cloneable {
 		}
 
 		if (m != -1) {
-			this.linkFlag = 'M';
+			this.linkFlag = TarConstants.LF_GNUTYPE_MULTIVOL;
 		}
 		outbuf[offset++] = this.linkFlag;
 
@@ -1020,6 +1025,9 @@ public class TarEntry extends Object implements Cloneable {
 			for (int i = 0; i < TarConstants.MAGICLEN; i++) {
 				outbuf[offset++] = 0;
 			}
+		} else if (this.tarFormat == USTAR_FORMAT) {
+			outbuf[offset - 2] = TarConstants.ZERO_BYTE;
+			outbuf[offset - 1] = TarConstants.ZERO_BYTE;
 		} else {
 			offset = TarFileUtil.getNameBytes(this.magic, outbuf, offset,
 					TarConstants.MAGICLEN);
@@ -1032,10 +1040,10 @@ public class TarEntry extends Object implements Cloneable {
 				TarConstants.GNAMELEN);
 
 		offset = TarFileUtil.getOctalBytes(this.devMajor, outbuf, offset,
-				TarConstants.DEVLEN);
+				TarConstants.DEVLEN, TarConstants.ZERO_BYTE);
 
 		offset = TarFileUtil.getOctalBytes(this.devMinor, outbuf, offset,
-				TarConstants.DEVLEN);
+				TarConstants.DEVLEN, TarConstants.ZERO_BYTE);
 
 		while (offset < outbuf.length) {
 			outbuf[offset++] = 0;
@@ -1051,13 +1059,23 @@ public class TarEntry extends Object implements Cloneable {
 
 		// this sets the real size of the offset if the size is bigger than the
 		// 8GB barrier
-		if (m > 8589934592l) {
-			offset = TarFileUtil.setRealSize(m, outbuf, 369, 12);
+		/*
+		 * This sets the real size if the size is bigger than the 8GB barrier.
+		 * Not supported by USTAR 
+		 * (based on http://en.wikipedia.org/wiki/Tar_%28file_format%29#UStar_format)
+		 * 
+		 * Directory "size" fix contributed by: Bert Becker
+		 * <becker@informatik.hu-berlin.de>
+		 */
+		if(this.tarFormat != USTAR_FORMAT) {
+			if (size > 8589934592l) {
+				offset = TarFileUtil.setRealSize(size, outbuf, 124, 12);
+			}
 		}
 
-		this.linkFlag = 'M';
+		this.linkFlag = TarConstants.LF_GNUTYPE_MULTIVOL;
 
-		long checkSum = this.computeCheckSum(outbuf);
+		long checkSum = TarFileUtil.computeCheckSum(outbuf);
 
 		TarFileUtil.getCheckSumOctalBytes(checkSum, outbuf, csOffset,
 				TarConstants.CHKSUMLEN);
