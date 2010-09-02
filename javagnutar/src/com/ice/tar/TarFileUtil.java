@@ -2,7 +2,6 @@ package com.ice.tar;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 /**
  * These are the standard static helpers for parsing/writing the header data.

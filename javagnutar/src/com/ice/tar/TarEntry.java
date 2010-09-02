@@ -921,12 +921,15 @@ public class TarEntry extends Object implements Cloneable {
 			for (int i = 0; i < TarConstants.MAGICLEN; ++i) {
 				outbuf[offset++] = 0;
 			}
-		} else if (this.tarFormat == USTAR_FORMAT) {
-			outbuf[offset - 2] = TarConstants.ZERO_BYTE;
-			outbuf[offset - 1] = TarConstants.ZERO_BYTE;
 		} else {
+
 			offset = TarFileUtil.getNameBytes(this.magic, outbuf, offset,
 					TarConstants.MAGICLEN);
+			
+			if (this.tarFormat == USTAR_FORMAT) {
+				outbuf[offset - 2] = TarConstants.ZERO_BYTE;
+				outbuf[offset - 1] = TarConstants.ZERO_BYTE;
+			}
 		}
 
 		offset = TarFileUtil.getNameBytes(this.userName, outbuf, offset,
@@ -1025,12 +1028,15 @@ public class TarEntry extends Object implements Cloneable {
 			for (int i = 0; i < TarConstants.MAGICLEN; i++) {
 				outbuf[offset++] = 0;
 			}
-		} else if (this.tarFormat == USTAR_FORMAT) {
-			outbuf[offset - 2] = TarConstants.ZERO_BYTE;
-			outbuf[offset - 1] = TarConstants.ZERO_BYTE;
 		} else {
+
 			offset = TarFileUtil.getNameBytes(this.magic, outbuf, offset,
 					TarConstants.MAGICLEN);
+			
+			if (this.tarFormat == USTAR_FORMAT) {
+				outbuf[offset - 2] = TarConstants.ZERO_BYTE;
+				outbuf[offset - 1] = TarConstants.ZERO_BYTE;
+			}
 		}
 
 		offset = TarFileUtil.getNameBytes(this.userName, outbuf, offset,
