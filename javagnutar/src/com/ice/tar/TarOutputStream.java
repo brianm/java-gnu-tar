@@ -71,7 +71,7 @@ public class TarOutputStream extends FilterOutputStream {
 	 * that finish() is called followed by calling the TarBuffer's close().
 	 */
 
-	public void close2() throws IOException {
+	public void closeMulti() throws IOException {
 		this.flush();
 		this.buffer.close();
 	}
@@ -114,7 +114,7 @@ public class TarOutputStream extends FilterOutputStream {
 	 * this is the version that should be called when spanning media with the -M
 	 * option that is now avialable
 	 */
-	public void closeEntry2() throws IOException {
+	public void closeEntryMulti() throws IOException {
 		if (this.assemLen > 0) {
 			this.buffer.writeRecord(this.assemBuf);
 			this.currBytes += this.assemLen;

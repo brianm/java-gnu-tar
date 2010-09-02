@@ -1061,7 +1061,7 @@ public class TarEntry extends Object implements Cloneable {
 		}
 
 		// this sets the offset field for the header
-		offset = TarFileUtil.getLongOctalBytes2(m, outbuf, 369, 12);
+		offset = TarFileUtil.getLongOctalBytesMulti(m, outbuf, 369, 12);
 
 		// this sets the real size of the offset if the size is bigger than the
 		// 8GB barrier

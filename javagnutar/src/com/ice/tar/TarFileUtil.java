@@ -147,7 +147,7 @@ public class TarFileUtil {
 	 *            The number of header bytes to parse.
 	 * @return The long value of the octal bytes.
 	 */
-	public static int getLongOctalBytes2(long value, byte[] buf, int offset,
+	public static int getLongOctalBytesMulti(long value, byte[] buf, int offset,
 			int length) {
 
 		byte[] temp = new byte[length + 1];
