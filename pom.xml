@@ -3,7 +3,7 @@
     <groupId>org.skife.tar</groupId>
     <artifactId>java-gnu-tar</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>java-gnu-tar</name>
     <url>http://github.com/brianm/java-gnu-ar</url>
     <description>
