@@ -1,4 +1,4 @@
-package com.ice.tar;
+package org.skife.tar;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -11,21 +11,21 @@ import java.util.logging.Logger;
  * The TarInputStream reads a UNIX/Gnutar/Ustar tar archive as an InputStream.
  * Methods are provided to position at each successive entry in the archive, and
  * the read each entry as a normal input stream using read().
- * 
+ *
  * This library is under the Apache License Version 2.0
- * 
+ *
  * Authors:
- * 
+ *
  * @author Jeremy Lucier
  * @author Timothy Gerard Endres (Original Author)
- * 
+ *
  */
 
 public class TarInputStream extends FilterInputStream {
 
 	private static final Logger logger = Logger.getLogger(TarInputStream.class.getName());
     private static final int BYTE_MASK = 0xFF;
-	
+
 	private boolean hasHitEOF;
 
 	/*
@@ -66,8 +66,8 @@ public class TarInputStream extends FilterInputStream {
 	 * archive, only in the current entry. This value is determined from the
 	 * entry's size header field and the amount of data already read from the
 	 * current entry.
-	 * 
-	 * 
+	 *
+	 *
 	 * @return The number of available bytes for the current entry.
 	 */
 	@Override
@@ -94,7 +94,7 @@ public class TarInputStream extends FilterInputStream {
 	/**
 	 * Copies the contents of the current tar archive entry directly into an
 	 * output stream.
-	 * 
+	 *
 	 * @param out
 	 *            The OutputStream into which to write the entry's data.
 	 */
@@ -114,7 +114,7 @@ public class TarInputStream extends FilterInputStream {
 	/**
 	 * Get the number of bytes into the current TarEntry. This method returns
 	 * the number of bytes that have been read from the current TarEntry's data.
-	 * 
+	 *
 	 * @returns The current entry offset.
 	 */
 
@@ -129,7 +129,7 @@ public class TarInputStream extends FilterInputStream {
 	 * TarEntry from the header bytes and return that entry. If there are no
 	 * more entries in the archive, null will be returned to indicate that the
 	 * end of the archive has been reached.
-	 * 
+	 *
 	 * @return The next TarEntry in the archive, or null.
 	 */
 
@@ -250,7 +250,7 @@ public class TarInputStream extends FilterInputStream {
 
 	/**
 	 * Get the record size being used by this stream's TarBuffer.
-	 * 
+	 *
 	 * @return The TarBuffer record size.
 	 */
 	public int getRecordSize() {
@@ -262,7 +262,7 @@ public class TarInputStream extends FilterInputStream {
 	 * accounts for the blocking stream that tar uses, so it represents the
 	 * actual position in input stream, as opposed to the place where the tar
 	 * archive parsing is.
-	 * 
+	 *
 	 * @returns The current file pointer.
 	 */
 
@@ -273,7 +273,7 @@ public class TarInputStream extends FilterInputStream {
 
 	/**
 	 * Since we do not support marking just yet, we do nothing.
-	 * 
+	 *
 	 * @param markLimit
 	 *            The limit to mark.
 	 */
@@ -283,7 +283,7 @@ public class TarInputStream extends FilterInputStream {
 
 	/**
 	 * Since we do not support marking just yet, we return false.
-	 * 
+	 *
 	 * @return False.
 	 */
 	@Override
@@ -293,9 +293,9 @@ public class TarInputStream extends FilterInputStream {
 
 	/**
 	 * Reads a byte from the current tar archive entry.
-	 * 
+	 *
 	 * This method simply calls read( byte[], int, int ).
-	 * 
+	 *
 	 * @return The byte read, or -1 at EOF.
 	 */
 	@Override
@@ -306,9 +306,9 @@ public class TarInputStream extends FilterInputStream {
 
 	/**
 	 * Reads bytes from the current tar archive entry.
-	 * 
+	 *
 	 * This method simply calls read( byte[], int, int ).
-	 * 
+	 *
 	 * @param buf
 	 *            The buffer into which to place bytes read.
 	 * @return The number of bytes read, or -1 at EOF.
@@ -320,11 +320,11 @@ public class TarInputStream extends FilterInputStream {
 
 	/**
 	 * Reads bytes from the current tar archive entry.
-	 * 
+	 *
 	 * This method is aware of the boundaries of the current entry in the
 	 * archive and will deal with them as if they were this stream's start and
 	 * EOF.
-	 * 
+	 *
 	 * @param buf
 	 *            The buffer into which to place bytes read.
 	 * @param offset
@@ -412,7 +412,7 @@ public class TarInputStream extends FilterInputStream {
 	 * Skip bytes in the input buffer. This skips bytes in the current entry's
 	 * data, not the entire archive, and will stop at the end of the current
 	 * entry's data if the number to skip extends beyond that point.
-	 * 
+	 *
 	 * @param numToSkip
 	 *            The number of bytes to skip.
 	 * @return The actual number of bytes skipped.

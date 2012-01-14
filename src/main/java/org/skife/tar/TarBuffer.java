@@ -1,4 +1,4 @@
-package com.ice.tar;
+package org.skife.tar;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,15 +16,15 @@ import java.util.logging.Logger;
  * <p>
  * You should never have a need to access this class directly. TarBuffers are
  * created by Tar IO Streams.
- * 
- * 
+ *
+ *
  * This library is under the Apache License Version 2.0
- * 
+ *
  * Authors:
- * 
+ *
  * @author Jeremy Lucier
  * @author Timothy Gerard Endres (Original Author)
- * 
+ *
  */
 
 public class TarBuffer extends Object {
@@ -136,7 +136,7 @@ public class TarBuffer extends Object {
 
 	/**
 	 * Get the current block number, zero based.
-	 * 
+	 *
 	 * @return The current zero based block number.
 	 */
 	public int getCurrentBlockNum() {
@@ -146,7 +146,7 @@ public class TarBuffer extends Object {
 	/**
 	 * Get the current record number, within the current block, zero based.
 	 * Thus, current offset = (currentBlockNum * recsPerBlk) + currentRecNum.
-	 * 
+	 *
 	 * @return The current zero based record number.
 	 */
 	public int getCurrentRecordNum() {
@@ -182,7 +182,7 @@ public class TarBuffer extends Object {
 	/**
 	 * Determine if an archive record indicate End of Archive. End of archive is
 	 * indicated by a record that consists entirely of null bytes.
-	 * 
+	 *
 	 * @param record
 	 *            The record data to check.
 	 */
@@ -196,7 +196,7 @@ public class TarBuffer extends Object {
 		return true;
 	}
 
-	
+
 	 /**
      * Read a record from the input stream and return the data.
      *
@@ -234,7 +234,7 @@ public class TarBuffer extends Object {
      * @return false if End-Of-File, else true
      */
     private boolean readBlock() throws IOException {
-    	
+
       if(logger.isLoggable(Level.FINEST)) {
             logger.finest("ReadBlock: blkIdx = " + currBlkIdx);
         }
@@ -287,7 +287,7 @@ public class TarBuffer extends Object {
             bytesNeeded -= numBytes;
 
             if (numBytes != this.blockSize) {
-            	
+
             	if(logger.isLoggable(Level.FINEST)) {
                     logger.finest("ReadBlock: INCOMPLETE READ "
                                        + numBytes + " of " + this.blockSize
@@ -300,7 +300,7 @@ public class TarBuffer extends Object {
 
         return true;
     }
-	
+
 
 	/**
 	 * Skip over a record on the input stream.
@@ -349,7 +349,7 @@ public class TarBuffer extends Object {
 
 	/**
 	 * Write an archive record to the archive.
-	 * 
+	 *
 	 * @param record
 	 *            The record data to write to the archive.
 	 */
@@ -384,7 +384,7 @@ public class TarBuffer extends Object {
 	/**
 	 * Write an archive record to the archive, where the record may be inside of
 	 * a larger array buffer. The buffer must be "offset plus record size" long.
-	 * 
+	 *
 	 * @param buf
 	 *            The buffer containing the record data to write.
 	 * @param offset
@@ -421,7 +421,7 @@ public class TarBuffer extends Object {
 
 	/**
 	 * Write an archive record to the archive.
-	 * 
+	 *
 	 * @param record
 	 *            The record data to write to the archive.
 	 */

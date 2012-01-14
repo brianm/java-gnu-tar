@@ -1,4 +1,4 @@
-package com.ice.tar;
+package org.skife.tar;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,19 +12,15 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import com.ice.tar.TarEntry;
-import com.ice.tar.TarInputStream;
-import com.ice.tar.TarOutputStream;
-
 
 /**
  * This is a utility class which can create and extract tar or tar.gz files.
  * For tar.gz, the returned tar file would have to be run through the gzip method.
- * 
+ *
  * This library is under the Apache License Version 2.0
- * 
+ *
  * Authors:
- * 
+ *
  * @author jeremy Lucier
  *
  */
@@ -83,10 +79,10 @@ public class Tar {
 
 
 			// Get the first entry in the archive
-			TarEntry tarEntry = tInputStream.getNextEntry(); 
-			while (tarEntry != null){  
+			TarEntry tarEntry = tInputStream.getNextEntry();
+			while (tarEntry != null){
 
-				// Create a file with the same name as the tarEntry 
+				// Create a file with the same name as the tarEntry
 				File destPath = new File( destDirectory.getAbsolutePath() + File.separatorChar + tarEntry.getName());
 
 				if(logger.isLoggable(Level.FINEST)) {
@@ -95,7 +91,7 @@ public class Tar {
 
 				// If the file is a directory, make all the dir's below it
 				if (tarEntry.isDirectory()){
-					destPath.mkdirs();                           
+					destPath.mkdirs();
 				} else {
 
 					// It's a file, grab the containing folder and if it doesn't exist, create it.
@@ -104,14 +100,14 @@ public class Tar {
 					}
 
 
-					FileOutputStream fOut = new FileOutputStream(destPath); 
-					tInputStream.copyEntryContents(fOut);   
-					fOut.close();                      
+					FileOutputStream fOut = new FileOutputStream(destPath);
+					tInputStream.copyEntryContents(fOut);
+					fOut.close();
 				}
 
 				// Grab the next tarentry
 				tarEntry = tInputStream.getNextEntry();
-			}    
+			}
 
 		} catch(IOException e) {
 			throw e;
@@ -176,7 +172,7 @@ public class Tar {
 		try {
 
 			fOut = new FileOutputStream(destTarFile);
-			tarOutputStream = new TarOutputStream(fOut);         
+			tarOutputStream = new TarOutputStream(fOut);
 
 			// Recurse through the directories
 			recursiveTar(srcDirectory, srcDirectory, destTarFile, tarOutputStream);
@@ -260,7 +256,7 @@ public class Tar {
 					// We need to set the file's absolute path starting above the root directory
 					// Otherwise the tar will have useless folders in them.
 					if(fileAbsPath.startsWith(abs)) {
-						fileAbsPath = fileAbsPath.substring(abs.length()); 
+						fileAbsPath = fileAbsPath.substring(abs.length());
 
 						// Remove the starting slash if it exists...
 						// This covers the C:\ case
@@ -281,7 +277,7 @@ public class Tar {
 						destTOS.putNextEntry(te);
 						int count = 0;
 						while((count = fis.read(buf, 0, BUFFER_SIZE)) != -1) {
-							destTOS.write(buf,0,count);    
+							destTOS.write(buf,0,count);
 						}
 
 
@@ -315,7 +311,7 @@ public class Tar {
 
 		}
 
-		// Ensure this gets cleared from memory by removing the 
+		// Ensure this gets cleared from memory by removing the
 		// reference before recursing further
 		fList = null;
 
@@ -323,12 +319,12 @@ public class Tar {
 		while(directories.isEmpty() == false) {
 
 			file = directories.poll();
-			recursiveTar(rootDir, file, destTarFile, destTOS);  
+			recursiveTar(rootDir, file, destTarFile, destTOS);
 		}
 	}
 
 	/**
-	 * Gzip an existing .tar file.  
+	 * Gzip an existing .tar file.
 	 * @param srcTarFile
 	 * @param destTarGzFile
 	 * @throws IOException
@@ -356,27 +352,27 @@ public class Tar {
 			throw new IOException("Destination tar.gz file already exists!");
 		}*/
 
-		try { 
+		try {
 
 			outFile = new FileOutputStream(destTarGzFile);
 
-			// Create the GZIP output stream 
+			// Create the GZIP output stream
 			outGzipFile = new GZIPOutputStream(outFile);
 
-			// Open the input file 
-			inFile = new FileInputStream(srcTarFile); 
+			// Open the input file
+			inFile = new FileInputStream(srcTarFile);
 
-			// Transfer bytes from the input file to the GZIP output stream 
-			byte[] buf = new byte[1024]; 
-			int len; 
-			while ((len = inFile.read(buf)) > 0) { 
-				outGzipFile.write(buf, 0, len); 
+			// Transfer bytes from the input file to the GZIP output stream
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = inFile.read(buf)) > 0) {
+				outGzipFile.write(buf, 0, len);
 			}
 
-			// Complete the GZIP file 
+			// Complete the GZIP file
 			outGzipFile.finish();
 
-		} catch (IOException e) { 
+		} catch (IOException e) {
 			throw e;
 		} finally {
 
@@ -392,14 +388,14 @@ public class Tar {
 
 			if(outGzipFile != null) {
 				try {
-					outGzipFile.close(); 
+					outGzipFile.close();
 				} catch(IOException e) {
 					// Ignore
 				}
 			}
 
 			if(outFile != null) {
-				try { 
+				try {
 					outFile.close();
 				} catch(IOException e) {
 					// Ignore

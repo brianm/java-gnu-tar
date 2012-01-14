@@ -1,4 +1,4 @@
-package com.ice.tar;
+package org.skife.tar;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -9,14 +9,14 @@ import java.util.zip.GZIPOutputStream;
  * Outputs tar.gz files. Added functionality that it doesn't need to know the
  * size of an entry. If an entry has zero size when it is put in the Tar, then
  * it buffers it until it's closed and it knows the size.
- * 
+ *
  * This library is under the Apache License Version 2.0
- * 
+ *
  * Authors:
- * 
+ *
  * @author Jeremy Lucier
  * @author "Bay" <bayard@generationjava.com> (Original Author)
- * 
+ *
  */
 
 public class TarGzOutputStream extends TarOutputStream {

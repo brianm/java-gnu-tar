@@ -1,4 +1,4 @@
-package com.ice.tar;
+package org.skife.tar;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -10,13 +10,13 @@ import java.util.logging.Logger;
  * The TarOutputStream writes a UNIX tar archive as an OutputStream. Methods are
  * provided to put entries, and then write their contents by writing to this
  * stream using write().
- * 
- * 
+ *
+ *
  * This library is under the Apache License Version 2.0
- * 
+ *
  * @author Jeremy Lucier
  * @author Timothy Gerard Endres (Original Author)
- * 
+ *
  */
 
 public class TarOutputStream extends FilterOutputStream {
@@ -110,7 +110,7 @@ public class TarOutputStream extends FilterOutputStream {
 	 * stream in order to satisfy the buffer's record based writes. Thus, there
 	 * may be data fragments still being assembled that must be written to the
 	 * output stream before this entry is closed and the next entry written.
-	 * 
+	 *
 	 * this is the version that should be called when spanning media with the -M
 	 * option that is now avialable
 	 */
@@ -134,7 +134,7 @@ public class TarOutputStream extends FilterOutputStream {
 
 	/**
 	 * Get the record size being used by this stream's TarBuffer.
-	 * 
+	 *
 	 * @return The TarBuffer record size.
 	 */
 	public int getRecordSize() {
@@ -148,7 +148,7 @@ public class TarOutputStream extends FilterOutputStream {
 	 * write the entry's contents. Once the contents are written, closeEntry()
 	 * <B>MUST</B> be called to ensure that all buffered data is completely
 	 * written to the output stream.
-	 * 
+	 *
 	 * @param entry
 	 *            The TarEntry to be written to the archive.
 	 */
@@ -220,10 +220,10 @@ public class TarOutputStream extends FilterOutputStream {
 	 * write the entry's contents. Once the contents are written, closeEntry()
 	 * <B>MUST</B> be called to ensure that all buffered data is completely
 	 * written to the output stream.
-	 * 
+	 *
 	 *this does a header for a multipart -M spanning archive length is the size
 	 * for the header field atByte is the offset field
-	 * 
+	 *
 	 * @param entry
 	 *            The TarEntry to be written to the archive.
 	 */
@@ -293,9 +293,9 @@ public class TarOutputStream extends FilterOutputStream {
 
 	/**
 	 * Writes bytes to the current tar archive entry.
-	 * 
+	 *
 	 * This method simply calls read( byte[], int, int ).
-	 * 
+	 *
 	 * @param wBuf
 	 *            The buffer to write to the archive.
 	 * @return The number of bytes read, or -1 at EOF.
@@ -312,9 +312,9 @@ public class TarOutputStream extends FilterOutputStream {
 	 * (painfully) aware of the record buffering required by TarBuffer, and
 	 * manages buffers that are not a multiple of recordsize in length,
 	 * including assembling records from small buffers.
-	 * 
+	 *
 	 * This method simply calls read( byte[], int, int ).
-	 * 
+	 *
 	 * @param wBuf
 	 *            The buffer to write to the archive.
 	 * @param wOffset
@@ -393,9 +393,9 @@ public class TarOutputStream extends FilterOutputStream {
 
 	/**
 	 * Writes a byte to the current tar archive entry.
-	 * 
+	 *
 	 * This method simply calls read( byte[], int, int ).
-	 * 
+	 *
 	 * @param b
 	 *            The byte written.
 	 */

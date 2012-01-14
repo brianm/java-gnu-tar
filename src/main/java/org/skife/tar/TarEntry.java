@@ -1,4 +1,4 @@
-package com.ice.tar;
+package org.skife.tar;
 
 import java.io.File;
 import java.util.Date;
@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * 
+ *
  * This class represents an entry in a Tar archive. It consists of the entry's
  * header, as well as the entry's File. Entries can be instantiated in one of
  * three ways, depending on how they are to be used.
@@ -27,11 +27,11 @@ import java.util.logging.Logger;
  * InputStream is available for writing to the archive, and the header
  * information is constructed from other information. In this case the header
  * fields are set to defaults and the File is set to null.
- * 
+ *
  * <pre>
- * 
+ *
  * Original Unix Tar Header:
- * 
+ *
  * Field  Field     Field
  * Width  Name      Meaning
  * -----  --------- ---------------------------
@@ -44,13 +44,13 @@ import java.util.logging.Logger;
  *     8  chksum    checksum for header
  *     1  link      indicator for links
  *   100  linkname  name of linked file
- * 
+ *
  * </pre>
- * 
+ *
  * <pre>
- * 
+ *
  * POSIX "ustar" Style Tar Header:
- * 
+ *
  * Field  Field     Field
  * Width  Name      Meaning
  * -----  --------- ---------------------------
@@ -70,7 +70,7 @@ import java.util.logging.Logger;
  *     8  devmajor  device major number
  *     8  devminor  device minor number
  *   155  prefix    prefix for file name
- * 
+ *
  * struct posix_header
  *   {                     byte offset
  *   char name[100];            0
@@ -90,16 +90,16 @@ import java.util.logging.Logger;
  *   char devminor[8];        337
  *   char prefix[155];        345
  *   };                       500
- * 
+ *
  * </pre>
- * 
+ *
  * This library is under the Apache License Version 2.0
- * 
+ *
  * Authors:
- * 
+ *
  * @author Jeremy Lucier
  * @author Timothy Gerard Endres (Original Author)
- * 
+ *
  */
 
 public class TarEntry extends Object implements Cloneable {
@@ -121,7 +121,7 @@ public class TarEntry extends Object implements Cloneable {
 	public static final int DEFAULT_FILE_MODE = 0100644;
 
 	/** Convert millis to seconds */
-	public static final int MILLIS_PER_SECOND = 1000; 
+	public static final int MILLIS_PER_SECOND = 1000;
 
 	/** If this entry represents a File, this references it. */
 	private File file;
@@ -203,7 +203,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Construct an entry from an archive's header bytes. File is set to null.
-	 * 
+	 *
 	 * @param headerBuf
 	 *            The header bytes from a tar archive entry.
 	 */
@@ -215,7 +215,7 @@ public class TarEntry extends Object implements Cloneable {
 	/**
 	 * Construct an entry for a file. File is set to file, and the header is
 	 * constructed from information from the file.
-	 * 
+	 *
 	 * @param file
 	 *            The file that the entry represents.
 	 */
@@ -243,22 +243,22 @@ public class TarEntry extends Object implements Cloneable {
 
 	/*
 	 * @Override public Object clone() { TarEntry entry = null;
-	 * 
+	 *
 	 * try { entry = (TarEntry) super.clone();
-	 * 
+	 *
 	 * if (this != null) { entry.header = (TarHeader) this.clone(); }
-	 * 
+	 *
 	 * if (this.file != null) { entry.file = new
 	 * File(this.file.getAbsolutePath()); } } catch (CloneNotSupportedException
 	 * ex) { ex.printStackTrace(System.err); }
-	 * 
+	 *
 	 * return entry; }
 	 */
 
 	/**
 	 * Determine if the two entries are equal. Equality is determined by the
 	 * header names being equal.
-	 * 
+	 *
 	 * @return it Entry to be checked for equality.
 	 * @return True if the entries are equal.
 	 */
@@ -269,7 +269,7 @@ public class TarEntry extends Object implements Cloneable {
 	/**
 	 * If this entry represents a file, and the file is a directory, return an
 	 * array of TarEntries for this entry's children.
-	 * 
+	 *
 	 * @return An array of TarEntry's for this entry's children.
 	 */
 	public TarEntry[] getDirectoryEntries() throws InvalidHeaderException {
@@ -291,7 +291,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Get this entry's file.
-	 * 
+	 *
 	 * @return This entry's file.
 	 */
 	public File getFile() {
@@ -305,12 +305,12 @@ public class TarEntry extends Object implements Cloneable {
 	 */
 	public int getMode() {
 		return this.mode;
-	} 
+	}
 
 
 	/**
 	 * Get this entry's group id.
-	 * 
+	 *
 	 * @return This entry's group id.
 	 */
 	public int getGroupId() {
@@ -319,7 +319,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Get this entry's group name.
-	 * 
+	 *
 	 * @return This entry's group name.
 	 */
 	public String getGroupName() {
@@ -328,7 +328,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Set this entry's modification time.
-	 * 
+	 *
 	 * @param time
 	 *            This entry's new modification time.
 	 */
@@ -338,7 +338,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Get this entry's name.
-	 * 
+	 *
 	 * @return This entry's name.
 	 */
 	public String getName() {
@@ -347,7 +347,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Get this entry's file size.
-	 * 
+	 *
 	 * @return This entry's file size.
 	 */
 	public long getSize() {
@@ -356,7 +356,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Get the tar format(GNU_FORMAT, UNIX_FORMAT, USTAR_FORMAT)
-	 * 
+	 *
 	 * @return
 	 */
 	public int getTarFormat() {
@@ -370,12 +370,12 @@ public class TarEntry extends Object implements Cloneable {
 	 */
 	public String getLinkName() {
 		return linkName.toString();
-	} 
+	}
 
 
 	/**
 	 * Get this entry's user id.
-	 * 
+	 *
 	 * @return This entry's user id.
 	 */
 	public int getUserId() {
@@ -384,7 +384,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Get this entry's user name.
-	 * 
+	 *
 	 * @return This entry's user name.
 	 */
 	public String getUserName() {
@@ -395,7 +395,7 @@ public class TarEntry extends Object implements Cloneable {
 	 * Determine if the given entry is a descendant of this entry. Descendancy
 	 * is determined by the name of the descendant starting with this entry's
 	 * name.
-	 * 
+	 *
 	 * @param desc
 	 *            Entry to be checked as a descendent of this.
 	 * @return True if entry is a descendant of this.
@@ -406,7 +406,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Return whether or not this entry represents a directory.
-	 * 
+	 *
 	 * @return True if this entry is a directory.
 	 */
 	public boolean isDirectory() {
@@ -429,7 +429,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Indicate if this entry is a GNU long name block
-	 * 
+	 *
 	 * @return true if this is a long name extension provided by GNU tar
 	 */
 	public boolean isGNULongNameEntry() {
@@ -439,7 +439,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Fill in a TarHeader given only the entry's name.
-	 * 
+	 *
 	 * @param hdr
 	 *            The TarHeader to fill in.
 	 * @param name
@@ -473,7 +473,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Fill in a TarHeader with information from a File.
-	 * 
+	 *
 	 * @param hdr
 	 *            The TarHeader to fill in.
 	 * @param file
@@ -550,10 +550,10 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Parse an entry's TarHeader information from a header buffer.
-	 * 
+	 *
 	 * Old unix-style code contributed by David Mehringer
 	 * <dmehring@astro.uiuc.edu>.
-	 * 
+	 *
 	 * @param header
 	 *            The tar entry header buffer to get information from.
 	 */
@@ -714,7 +714,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Set this entry's group id.
-	 * 
+	 *
 	 * @param groupId
 	 *            This entry's new group id.
 	 */
@@ -724,7 +724,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Set this entry's group name.
-	 * 
+	 *
 	 * @param groupName
 	 *            This entry's new group name.
 	 */
@@ -734,7 +734,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Convenience method to set this entry's group and user ids.
-	 * 
+	 *
 	 * @param userId
 	 *            This entry's new user id.
 	 * @param groupId
@@ -747,7 +747,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Set this entry's modification time.
-	 * 
+	 *
 	 * @param time
 	 *            This entry's new modification time.
 	 */
@@ -758,7 +758,7 @@ public class TarEntry extends Object implements Cloneable {
 	/**
 	 * Set this entry's modification time. The parameter passed to this method
 	 * is in "Java time".
-	 * 
+	 *
 	 * @param time
 	 *            This entry's new modification time.
 	 */
@@ -768,7 +768,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Set this entry's name.
-	 * 
+	 *
 	 * @param name
 	 *            This entry's new name.
 	 */
@@ -783,11 +783,11 @@ public class TarEntry extends Object implements Cloneable {
 	 */
 	public void setMode(int mode) {
 		this.mode = mode;
-	} 
+	}
 
 	/**
 	 * Convenience method to set this entry's group and user names.
-	 * 
+	 *
 	 * @param userName
 	 *            This entry's new user name.
 	 * @param groupName
@@ -800,7 +800,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Set this entry's file size.
-	 * 
+	 *
 	 * @param size
 	 *            This entry's new file size.
 	 */
@@ -810,7 +810,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Set the tar format(GNU_FORMAT, UNIX_FORMAT, USTAR_FORMAT)
-	 * 
+	 *
 	 * @param tarFormat
 	 * @throws Exception
 	 */
@@ -836,7 +836,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Set this entry's user id.
-	 * 
+	 *
 	 * @param userId
 	 *            This entry's new user id.
 	 */
@@ -846,7 +846,7 @@ public class TarEntry extends Object implements Cloneable {
 
 	/**
 	 * Set this entry's user name.
-	 * 
+	 *
 	 * @param userName
 	 *            This entry's new user name.
 	 */
@@ -869,7 +869,7 @@ public class TarEntry extends Object implements Cloneable {
 	/**
 	 * Write an entry's header information to a header buffer. This method can
 	 * throw an InvalidHeaderException
-	 * 
+	 *
 	 * @param outbuf
 	 *            The tar entry header buffer to fill in.
 	 * @throws InvalidHeaderException
@@ -925,7 +925,7 @@ public class TarEntry extends Object implements Cloneable {
 
 			offset = TarFileUtil.getNameBytes(this.magic, outbuf, offset,
 					TarConstants.MAGICLEN);
-			
+
 			if (this.tarFormat == USTAR_FORMAT) {
 				outbuf[offset - 2] = TarConstants.ZERO_BYTE;
 				outbuf[offset - 1] = TarConstants.ZERO_BYTE;
@@ -950,9 +950,9 @@ public class TarEntry extends Object implements Cloneable {
 
 		/*
 		 * This sets the real size if the size is bigger than the 8GB barrier.
-		 * Not supported by USTAR 
+		 * Not supported by USTAR
 		 * (based on http://en.wikipedia.org/wiki/Tar_%28file_format%29#UStar_format)
-		 * 
+		 *
 		 * Directory "size" fix contributed by: Bert Becker
 		 * <becker@informatik.hu-berlin.de>
 		 */
@@ -971,7 +971,7 @@ public class TarEntry extends Object implements Cloneable {
 	/**
 	 * Write an entry's header information to a header buffer. This method can
 	 * throw an InvalidHeaderException
-	 * 
+	 *
 	 * @param outbuf
 	 *            The tar entry header buffer to fill in.
 	 * @throws InvalidHeaderException
@@ -1032,7 +1032,7 @@ public class TarEntry extends Object implements Cloneable {
 
 			offset = TarFileUtil.getNameBytes(this.magic, outbuf, offset,
 					TarConstants.MAGICLEN);
-			
+
 			if (this.tarFormat == USTAR_FORMAT) {
 				outbuf[offset - 2] = TarConstants.ZERO_BYTE;
 				outbuf[offset - 1] = TarConstants.ZERO_BYTE;
@@ -1067,9 +1067,9 @@ public class TarEntry extends Object implements Cloneable {
 		// 8GB barrier
 		/*
 		 * This sets the real size if the size is bigger than the 8GB barrier.
-		 * Not supported by USTAR 
+		 * Not supported by USTAR
 		 * (based on http://en.wikipedia.org/wiki/Tar_%28file_format%29#UStar_format)
-		 * 
+		 *
 		 * Directory "size" fix contributed by: Bert Becker
 		 * <becker@informatik.hu-berlin.de>
 		 */
